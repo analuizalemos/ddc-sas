@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Dinâmico de Métrica</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+  }
+
+  .metric-card {
+    background: linear-gradient(135deg, #aadd8e 0%, #6cb775 100%); /* Gradiente verde similar ao da imagem */
+    color: white;
+    padding: 25px;
+    width: 320px;
+    border-radius: 8px; /* Adicionado um leve arredondamento, remova se preferir bordas retas */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  .card-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 20px;
+    opacity: 0.9;
+  }
+
+  .main-metric-section {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+
+  .trend-line-container {
+    width: 100%;
+    height: 40px; /* Altura para a linha de tendência SVG */
+    margin-bottom: 8px;
+  }
+
+  #trendLineSvg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .main-metric-label {
+    font-size: 0.95em;
+    opacity: 0.85;
+    margin-bottom: 5px;
+  }
+
+  .main-metric-value {
+    font-size: 3.2em; /* Tamanho grande para o valor principal */
+    font-weight: normal; /* O strong cuidará do negrito do número */
+    line-height: 1.1;
+  }
+
+  .main-metric-value .value {
+    font-weight: 700; /* Negrito para o número */
+  }
+  
+  .main-metric-value .unit {
+    font-size: 0.4em; /* Unidade menor */
+    font-weight: 600; /* Um pouco menos negrito ou ajustar conforme necessário */
+    margin-left: 5px;
+    vertical-align: middle; /* Alinha melhor com o número grande */
+  }
+
+  .separator {
+    border: none;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.5);
+    margin-top: 15px;
+    margin-bottom: 15px;
+  }
+
+  .secondary-metrics-section .secondary-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1em;
+    margin-bottom: 10px;
+  }
+
+  .secondary-metrics-section .secondary-metric:last-child {
+    margin-bottom: 0;
+  }
+  
+  .secondary-metric-label {
+    opacity: 0.85;
+  }
+  
+  .secondary-metric-value-container .value {
+    font-weight: bold;
+  }
+
+  .secondary-metric-value-container .unit {
+    font-size: 0.9em;
+    margin-left: 4px;
+    opacity: 0.9;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="metric-card">
+  <div class="card-title" id="cardTitle"></div>
+  <div class="main-metric-section">
+    <div class="trend-line-container">
+      <svg id="trendLineSvg" viewBox="0 0 100 30" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="main-metric-label" id="mainMetricLabel"></div>
+    <div class="main-metric-value" id="mainMetricValue"></div>
+  </div>
+  <hr class="separator">
+  <div class="secondary-metrics-section">
+    <div class="secondary-metric">
+      <span class="secondary-metric-label" id="secondaryMetric1Label"></span>
+      <span class="secondary-metric-value-container" id="secondaryMetric1Value"></span>
+    </div>
+    <div class="secondary-metric">
+      <span class="secondary-metric-label" id="secondaryMetric2Label"></span>
+      <span class="secondary-metric-value-container" id="secondaryMetric2Value"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function drawTrendLine(svgElement, trendData) {
+    svgElement.innerHTML = ''; // Limpa a linha anterior
+
+    if (!trendData || trendData.length < 2) {
+      // Se não houver dados suficientes, pode desenhar uma linha placeholder ou nada
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      // Path de exemplo simples para quando não há dados de tendência: uma linha horizontal
+      // path.setAttribute("d", "M0 15 L100 15"); 
+      // Ou um path mais parecido com o da imagem, mas estático:
+      path.setAttribute("d", "M5 20 Q 25 5, 45 12 T 75 10 L 95 8"); 
+      path.setAttribute("stroke", "white");
+      path.setAttribute("stroke-width", "3");
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      path.setAttribute("opacity", "0.7");
+      svgElement.appendChild(path);
+      return;
+    }
+
+    // Lógica simples de escalonamento para a linha de tendência
+    const width = 100; // viewBox width
+    const height = 30; // viewBox height
+    const padding = 3; // Padding dentro do viewBox para que a linha não toque as bordas
+
+    const dataMin = Math.min(...trendData);
+    const dataMax = Math.max(...trendData);
+    // Evita divisão por zero se todos os pontos forem iguais
+    const dataRange = (dataMax - dataMin === 0) ? 1 : (dataMax - dataMin);
+
+    const points = trendData.map((d, i) => {
+      const x = (i / (trendData.length - 1)) * (width - 2 * padding) + padding;
+      // Inverte o Y porque o SVG tem (0,0) no topo esquerdo
+      const y = (height - padding) - ((d - dataMin) / dataRange) * (height - 2 * padding);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    }).join(" ");
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", `M${points}`);
+    path.setAttribute("stroke", "white");
+    path.setAttribute("stroke-width", "3"); // Espessura da linha
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("stroke-linejoin", "round");
+    svgElement.appendChild(path);
+  }
+
+  function updateCard(data) {
+    document.getElementById('cardTitle').textContent = data.title;
+    
+    document.getElementById('mainMetricLabel').textContent = data.mainMetric.label;
+    const mainMetricValueElement = document.getElementById('mainMetricValue');
+    mainMetricValueElement.innerHTML = `<strong class="value">${data.mainMetric.value}</strong> <span class="unit">${data.mainMetric.unit}</span>`;
+
+    const svgElement = document.getElementById('trendLineSvg');
+    drawTrendLine(svgElement, data.trendData);
+
+    if (data.secondaryMetrics && data.secondaryMetrics.length > 0) {
+      const secMetric1Label = document.getElementById('secondaryMetric1Label');
+      const secMetric1Value = document.getElementById('secondaryMetric1Value');
+      if (secMetric1Label && secMetric1Value) {
+        secMetric1Label.textContent = data.secondaryMetrics[0].label;
+        secMetric1Value.innerHTML = `<strong class="value">${data.secondaryMetrics[0].value}</strong> <span class="unit">${data.secondaryMetrics[0].unit}</span>`;
+      }
+
+      if (data.secondaryMetrics.length > 1) {
+        const secMetric2Label = document.getElementById('secondaryMetric2Label');
+        const secMetric2Value = document.getElementById('secondaryMetric2Value');
+         if (secMetric2Label && secMetric2Value) {
+            secMetric2Label.textContent = data.secondaryMetrics[1].label;
+            secMetric2Value.innerHTML = `<strong class="value">${data.secondaryMetrics[1].value}</strong> <span class="unit">${data.secondaryMetrics[1].unit}</span>`;
+        }
+      }
+    }
+  }
+
+  // --- Dados de Exemplo (simulando o que viria do SAS VA) ---
+  const sampleData = {
+    title: "Escolas total",
+    mainMetric: {
+      label: "Variação no período",
+      value: "4,8", // Usando vírgula como na imagem
+      unit: "p.p."
+    },
+    // Dados para a linha de tendência (ex: últimos 7 pontos)
+    // Valores podem ser quaisquer números que representem a tendência.
+    // A função drawTrendLine irá normalizá-los para caber no espaço.
+    trendData: [10, 12, 9, 15, 18, 25, 22], 
+    secondaryMetrics: [
+      {
+        label: "Média anual",
+        value: "0,5",
+        unit: "p.p."
+      },
+      {
+        label: "Último ano",
+        value: "0,7",
+        unit: "p.p."
+      }
+    ]
+  };
+
+  // --- Chamada para atualizar o card com os dados de exemplo ---
+  // Em um cenário real com SAS VA DDC, esta chamada seria feita
+  // dentro da função de callback do subscribeToData, após formatar os dados do SAS.
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCard(sampleData);
+  });
+
+  // --- Exemplo de como você integraria com SAS VA DDC (pseudo-código) ---
+  /*
+  if (window.SASVisualAnalytics && window.SASVisualAnalytics.adv && window.SASVisualAnalytics.adv.Observable) {
+    vaDDCUtil.subscribeToData(handleVAData, { columns: 'all' }); // Solicita todas as colunas
+  } else {
+    // Ambiente não SAS, usar dados de exemplo
+    console.warn("SAS VA DDC Util não encontrado. Usando dados de exemplo.");
+    updateCard(sampleData);
+  }
+
+  function handleVAData(vaResponse) {
+    // SAS VA passa os dados em vaResponse.data
+    // Você precisará mapear as colunas do SAS VA para a estrutura 'cardData'
+    // Exemplo: Supondo que o SAS VA envie uma linha de dados
+    if (vaResponse && vaResponse.data && vaResponse.data.length > 0) {
+      const sasDataRow = vaResponse.data[0]; // Primeira linha de dados
+      
+      // Mapeie aqui as colunas do SAS VA para o formato esperado
+      // Ex: sasDataRow['nomeDaColunaParaTitulo']
+      const cardData = {
+        title: sasDataRow['colunaTitulo'] || "Título Padrão", // Substitua 'colunaTitulo' pelo nome real da sua coluna
+        mainMetric: {
+          label: sasDataRow['colunaLabelPrincipal'] || "Label Principal",
+          value: (sasDataRow['colunaValorPrincipal'] !== undefined ? String(sasDataRow['colunaValorPrincipal']).replace('.', ',') : "0,0"), // Formata para vírgula
+          unit: sasDataRow['colunaUnidadePrincipal'] || "un."
+        },
+        trendData: parseTrendData(sasDataRow['colunaDadosTendencia']), // Função para processar dados de tendência
+        secondaryMetrics: [
+          {
+            label: sasDataRow['colunaLabelSec1'] || "Label Secundário 1",
+            value: (sasDataRow['colunaValorSec1'] !== undefined ? String(sasDataRow['colunaValorSec1']).replace('.', ',') : "0,0"),
+            unit: sasDataRow['colunaUnidadeSec1'] || "un."
+          },
+          {
+            label: sasDataRow['colunaLabelSec2'] || "Label Secundário 2",
+            value: (sasDataRow['colunaValorSec2'] !== undefined ? String(sasDataRow['colunaValorSec2']).replace('.', ',') : "0,0"),
+            unit: sasDataRow['colunaUnidadeSec2'] || "un."
+          }
+        ]
+      };
+      updateCard(cardData);
+    }
+  }
+  
+  function parseTrendData(trendDataString) {
+    // Supondo que os dados de tendência venham como uma string separada por vírgulas, ex: "10,12,9,15,18,25,22"
+    if (typeof trendDataString === 'string' && trendDataString.trim() !== '') {
+      return trendDataString.split(',').map(Number);
+    }
+    // Ou se cada ponto da tendência vier de uma coluna diferente, você precisará agregá-los aqui.
+    return [10, 12, 9, 15, 18, 25, 22]; // Fallback
+  }
+  */
+
+</script>
+
+</body>
+</html>
