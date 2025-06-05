@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Card Dinâmico Flexível v3 (Métricas Opcionais, Tendência com Ano/Medida)</title>
+<title>Card Dinâmico v4 (Ordem Corrigida)</title>
 <style>
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,6 @@
     background-color: #f0f0f0;
     margin: 0;
   }
-
   .metric-card {
     background: linear-gradient(135deg, #aadd8e 0%, #6cb775 100%);
     color: white;
@@ -25,92 +24,20 @@
     display: flex;
     flex-direction: column;
   }
-
-  .card-title {
-    font-size: 1.3em;
-    font-weight: bold;
-    text-align: left;
-    margin-bottom: 20px;
-    opacity: 0.9;
-  }
-
-  .main-metric-section {
-    text-align: left;
-    margin-bottom: 20px;
-  }
-
-  .trend-line-container {
-    width: 100%;
-    height: 40px;
-    margin-bottom: 8px;
-  }
-
-  #trendLineSvg {
-    width: 100%;
-    height: 100%;
-  }
-
-  .main-metric-label {
-    font-size: 0.95em;
-    opacity: 0.85;
-    margin-bottom: 5px;
-  }
-
-  .main-metric-value {
-    font-size: 3.2em;
-    font-weight: normal;
-    line-height: 1.1;
-  }
-
-  .main-metric-value .value {
-    font-weight: 700;
-  }
-  
-  .main-metric-value .unit {
-    font-size: 0.4em;
-    font-weight: 600;
-    margin-left: 5px;
-    vertical-align: middle;
-  }
-
-  .separator {
-    border: none;
-    height: 1px;
-    background-color: rgba(255, 255, 255, 0.5);
-    margin-top: 15px;
-    margin-bottom: 15px;
-  }
-
-  .secondary-metrics-section {
-    /* Permite que esta seção ocupe o espaço restante se necessário, mas não é crucial aqui */
-  }
-  
-  .secondary-metrics-section .secondary-metric {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1em;
-    margin-bottom: 10px;
-    min-height: 1.2em; /* Garante algum espaço mesmo se vazio */
-  }
-
-  .secondary-metrics-section .secondary-metric:last-child {
-    margin-bottom: 0;
-  }
-  
-  .secondary-metric-label {
-    opacity: 0.85;
-  }
-  
-  .secondary-metric-value-container .value {
-    font-weight: bold;
-  }
-
-  .secondary-metric-value-container .unit {
-    font-size: 0.9em;
-    margin-left: 4px;
-    opacity: 0.9;
-  }
+  .card-title { font-size: 1.3em; font-weight: bold; text-align: left; margin-bottom: 20px; opacity: 0.9; }
+  .main-metric-section { text-align: left; margin-bottom: 20px; }
+  .trend-line-container { width: 100%; height: 40px; margin-bottom: 8px; }
+  #trendLineSvg { width: 100%; height: 100%; }
+  .main-metric-label { font-size: 0.95em; opacity: 0.85; margin-bottom: 5px; }
+  .main-metric-value { font-size: 3.2em; font-weight: normal; line-height: 1.1; }
+  .main-metric-value .value { font-weight: 700; }
+  .main-metric-value .unit { font-size: 0.4em; font-weight: 600; margin-left: 5px; vertical-align: middle; }
+  .separator { border: none; height: 1px; background-color: rgba(255, 255, 255, 0.5); margin-top: 15px; margin-bottom: 15px; }
+  .secondary-metrics-section .secondary-metric { display: flex; justify-content: space-between; align-items: center; font-size: 1em; margin-bottom: 10px; min-height: 1.2em; }
+  .secondary-metrics-section .secondary-metric:last-child { margin-bottom: 0; }
+  .secondary-metric-label { opacity: 0.85; }
+  .secondary-metric-value-container .value { font-weight: bold; }
+  .secondary-metric-value-container .unit { font-size: 0.9em; margin-left: 4px; opacity: 0.9; }
 </style>
 </head>
 <body>
@@ -138,19 +65,16 @@
 </div>
 
 <script>
+  // 1. DEFINIÇÃO DAS FUNÇÕES
   function drawTrendLine(svgElement, trendData) {
     svgElement.innerHTML = ''; 
     if (!trendData || trendData.length < 2) {
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", "M5 20 Q 25 5, 45 12 T 75 10 L 95 8"); 
-      path.setAttribute("stroke", "white");
-      path.setAttribute("stroke-width", "3");
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke-linecap", "round");
-      path.setAttribute("stroke-linejoin", "round");
-      path.setAttribute("opacity", "0.7");
-      svgElement.appendChild(path);
-      return;
+      path.setAttribute("stroke", "white"); path.setAttribute("stroke-width", "3");
+      path.setAttribute("fill", "none"); path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round"); path.setAttribute("opacity", "0.7");
+      svgElement.appendChild(path); return;
     }
     const width = 100, height = 30, padding = 3;
     const dataMin = Math.min(...trendData), dataMax = Math.max(...trendData);
@@ -161,12 +85,9 @@
       return `${x.toFixed(2)},${y.toFixed(2)}`;
     }).join(" ");
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", `M${points}`);
-    path.setAttribute("stroke", "white");
-    path.setAttribute("stroke-width", "3");
-    path.setAttribute("fill", "none");
-    path.setAttribute("stroke-linecap", "round");
-    path.setAttribute("stroke-linejoin", "round");
+    path.setAttribute("d", `M${points}`); path.setAttribute("stroke", "white");
+    path.setAttribute("stroke-width", "3"); path.setAttribute("fill", "none");
+    path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
     svgElement.appendChild(path);
   }
 
@@ -187,93 +108,48 @@
     const secMetric2ValueEl = document.getElementById('secondaryMetric2Value');
     const separatorLine = document.getElementById('separatorLine');
 
-    // Limpa e esconde as métricas secundárias antes de preencher
-    secMetric1LabelEl.textContent = '';
-    secMetric1ValueEl.innerHTML = '';
+    secMetric1LabelEl.textContent = ''; secMetric1ValueEl.innerHTML = '';
     secMetricRow1El.style.display = 'none';
-    secMetric2LabelEl.textContent = '';
-    secMetric2ValueEl.innerHTML = '';
+    secMetric2LabelEl.textContent = ''; secMetric2ValueEl.innerHTML = '';
     secMetricRow2El.style.display = 'none';
-    separatorLine.style.display = 'block'; // Mostra por padrão, esconde se não houver métricas secundárias
+    separatorLine.style.display = 'block'; 
 
     let hasSecondaryMetrics = false;
     if (data.secondaryMetrics && data.secondaryMetrics.length > 0) {
-      if (data.secondaryMetrics[0] && data.secondaryMetrics[0].label) { // Mostra se tiver label
+      if (data.secondaryMetrics[0] && (data.secondaryMetrics[0].label || data.secondaryMetrics[0].value !== "-")) {
         secMetric1LabelEl.textContent = data.secondaryMetrics[0].label;
         secMetric1ValueEl.innerHTML = `<strong class="value">${data.secondaryMetrics[0].value}</strong> <span class="unit">${data.secondaryMetrics[0].unit}</span>`;
-        secMetricRow1El.style.display = 'flex';
-        hasSecondaryMetrics = true;
+        secMetricRow1El.style.display = 'flex'; hasSecondaryMetrics = true;
       }
-      if (data.secondaryMetrics[1] && data.secondaryMetrics[1].label) { // Mostra se tiver label
+      if (data.secondaryMetrics[1] && (data.secondaryMetrics[1].label || data.secondaryMetrics[1].value !== "-")) {
         secMetric2LabelEl.textContent = data.secondaryMetrics[1].label;
         secMetric2ValueEl.innerHTML = `<strong class="value">${data.secondaryMetrics[1].value}</strong> <span class="unit">${data.secondaryMetrics[1].unit}</span>`;
-        secMetricRow2El.style.display = 'flex';
-        hasSecondaryMetrics = true;
+        secMetricRow2El.style.display = 'flex'; hasSecondaryMetrics = true;
       }
     }
-    
-    if (!hasSecondaryMetrics) {
-        separatorLine.style.display = 'none';
-    }
-  }
-
-  // --- Bloco de Integração com SAS VA / Teste Local ---
-  // Este bloco tenta detectar se está rodando no SAS VA.
-  // Se não, ele roda com dados de exemplo após o DOM carregar.
-  if (window.SASVisualAnalytics && window.SASVisualAnalytics.adv && window.SASVisualAnalytics.adv.Observable) {
-    // Esta parte roda DENTRO do SAS VA
-    console.log("Executando dentro do ambiente SAS VA. Tentando inscrever para dados...");
-    // Certifique-se que o script va-ddc-util.js foi incluído no seu HTML (geralmente no <head>)
-    // Ex: <script src="/SASVisualAnalytics/resources/common/js/va-ddc-util.js"></script>
-    vaDDCUtil.subscribeToData(handleVAData, { columns: 'all' });
-  } else {
-    // Esta parte roda se você abrir o HTML diretamente no navegador (FORA do SAS VA)
-    console.warn("SAS VA DDC Util não encontrado. Usando dados de exemplo para Card Flexível.");
-    document.addEventListener('DOMContentLoaded', function() {
-      // ESCOLHA QUAL EXEMPLO TESTAR LOCALMENTE DESCOMENTANDO UMA DAS LINHAS ABAIXO:
-      const mockVaResponse = { data: sampleRows_Minimal, columns: mockColumns_Minimal };
-      // const mockVaResponse = { data: sampleRows_WithOneSecondary, columns: mockColumns_WithOneSecondary };
-      // const mockVaResponse = { data: sampleRows_Full, columns: mockColumns_Full };
-      
-      handleVAData(mockVaResponse);
-    });
+    if (!hasSecondaryMetrics) { separatorLine.style.display = 'none'; }
   }
 
   function handleVAData(vaResponse) {
-    console.log("Dados recebidos do SAS VA (Card Flexível):", vaResponse);
+    console.log("Dados recebidos (Card Flexível):", vaResponse);
 
     if (!vaResponse || !vaResponse.data || vaResponse.data.length === 0 || !vaResponse.columns || vaResponse.columns.length === 0) {
-      console.error("Estrutura de dados ou colunas ausente/vazia do SAS VA. Verifique as Funções e os dados.");
-      // Opcional: limpar o card ou mostrar mensagem de "sem dados"
-      updateCard({ // Dados vazios/padrão para limpar o card
-          title: "Sem dados", mainMetric: { label: "", value: "-", unit: "" }, 
-          trendData: [], secondaryMetrics: [] 
-      });
+      console.error("Estrutura de dados ou colunas ausente/vazia. Verifique as Funções e os dados.");
+      updateCard({ title: "Sem dados", mainMetric: { label: "", value: "-", unit: "" }, trendData: [], secondaryMetrics: [] });
       return;
     }
 
     const orderedActualColumnNames = vaResponse.columns.map(col => col.name);
 
-    // DEFINA A ORDEM ESPERADA DAS COLUNAS (ÍNDICES)
-    // Estas são as posições das colunas que você arrasta para as "Funções" no SAS VA
-    const IDX_TITULO = 0;
-    const IDX_LABEL_PRINCIPAL = 1;
-    const IDX_VALOR_PRINCIPAL = 2;
-    const IDX_UNIDADE_PRINCIPAL = 3;
-    const IDX_ANO_TENDENCIA = 4;     // Coluna com o Ano/Período para a tendência
-    const IDX_VALOR_TENDENCIA = 5;   // Coluna com o Valor da Medida para a tendência
-    // Métricas secundárias são opcionais. Seus índices são:
-    const IDX_LABEL_SEC1 = 6;        
-    const IDX_VALOR_SEC1 = 7;        
-    const IDX_UNIDADE_SEC1 = 8;      
-    const IDX_LABEL_SEC2 = 9;        
-    const IDX_VALOR_SEC2 = 10;       
-    const IDX_UNIDADE_SEC2 = 11;     
+    const IDX_TITULO = 0; const IDX_LABEL_PRINCIPAL = 1; const IDX_VALOR_PRINCIPAL = 2;
+    const IDX_UNIDADE_PRINCIPAL = 3; const IDX_ANO_TENDENCIA = 4; const IDX_VALOR_TENDENCIA = 5;
+    const IDX_LABEL_SEC1 = 6; const IDX_VALOR_SEC1 = 7; const IDX_UNIDADE_SEC1 = 8;
+    const IDX_LABEL_SEC2 = 9; const IDX_VALOR_SEC2 = 10; const IDX_UNIDADE_SEC2 = 11;     
 
-    const MIN_COLUNAS_OBRIGATORIAS = IDX_VALOR_TENDENCIA + 1; // = 6 colunas (índices 0 a 5)
+    const MIN_COLUNAS_OBRIGATORIAS = IDX_VALOR_TENDENCIA + 1; 
 
     if (orderedActualColumnNames.length < MIN_COLUNAS_OBRIGATORIAS) {
-      console.error(`ERRO: O JavaScript espera pelo menos ${MIN_COLUNAS_OBRIGATORIAS} colunas para os dados básicos (Título, Métrica Principal, Ano e Valor da Tendência), mas o SAS VA enviou apenas ${orderedActualColumnNames.length}. Verifique as "Funções" obrigatórias.`);
+      console.error(`ERRO: JavaScript espera ${MIN_COLUNAS_OBRIGATORIAS} colunas obrigatórias, mas recebeu ${orderedActualColumnNames.length}.`);
       updateCard({ title: "Erro: Colunas insuficientes", mainMetric: { label: "", value: "-", unit: "" }, trendData: [], secondaryMetrics: [] });
       return;
     }
@@ -282,7 +158,7 @@
     const nomeColunaValorTendencia = orderedActualColumnNames[IDX_VALOR_TENDENCIA];
     const trendAnos = vaResponse.data.map(linha => linha[nomeColunaAnoTendencia]);
     const trendValoresMedida = vaResponse.data.map(linha => linha[nomeColunaValorTendencia]);
-    console.log("Anos da tendência extraídos:", trendAnos); // Para depuração
+    console.log("Anos da tendência extraídos:", trendAnos);
 
     const primeiraLinha = vaResponse.data[0];
     const cardData = {
@@ -296,17 +172,15 @@
       secondaryMetrics: [] 
     };
 
-    // Tenta preencher a Métrica Secundária 1
-    const MIN_COLUNAS_PARA_SEC1 = IDX_UNIDADE_SEC1 + 1; // Precisa de colunas até o índice da unidade da Sec1
+    const MIN_COLUNAS_PARA_SEC1 = IDX_UNIDADE_SEC1 + 1; 
     if (orderedActualColumnNames.length >= MIN_COLUNAS_PARA_SEC1) {
       cardData.secondaryMetrics.push({
-        label: primeiraLinha[orderedActualColumnNames[IDX_LABEL_SEC1]] || "", // Vazio se não houver label específico
+        label: primeiraLinha[orderedActualColumnNames[IDX_LABEL_SEC1]] || "",
         value: primeiraLinha[orderedActualColumnNames[IDX_VALOR_SEC1]] !== undefined ? String(primeiraLinha[orderedActualColumnNames[IDX_VALOR_SEC1]]).replace('.', ',') : "-",
         unit: primeiraLinha[orderedActualColumnNames[IDX_UNIDADE_SEC1]] || ""
       });
 
-      // Tenta preencher a Métrica Secundária 2
-      const MIN_COLUNAS_PARA_SEC2 = IDX_UNIDADE_SEC2 + 1; // Precisa de colunas até o índice da unidade da Sec2
+      const MIN_COLUNAS_PARA_SEC2 = IDX_UNIDADE_SEC2 + 1; 
       if (orderedActualColumnNames.length >= MIN_COLUNAS_PARA_SEC2) {
         cardData.secondaryMetrics.push({
           label: primeiraLinha[orderedActualColumnNames[IDX_LABEL_SEC2]] || "",
@@ -316,9 +190,9 @@
       }
     }
     updateCard(cardData);
-  }
+  } // Fim de handleVAData
 
-  // --- Dados e Colunas de Exemplo para TESTE LOCAL ---
+  // 2. DEFINIÇÃO DOS DADOS DE EXEMPLO PARA TESTE LOCAL
   const exCol = {
       titulo: 'EX_TITULO', lblPrinc: 'EX_LBL_PRINC', valPrinc: 'EX_VAL_PRINC', uniPrinc: 'EX_UNI_PRINC',
       anoTend: 'EX_ANO_TEND', valTend: 'EX_VAL_TEND',
@@ -327,31 +201,32 @@
   };
 
   const sampleRows_Minimal = [
-    { [exCol.titulo]: "Card Mínimo", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "100", [exCol.uniPrinc]: "pts", [exCol.anoTend]: 2023, [exCol.valTend]: 50 },
-    { [exCol.titulo]: "Card Mínimo", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "100", [exCol.uniPrinc]: "pts", [exCol.anoTend]: 2024, [exCol.valTend]: 55 }
+    { [exCol.titulo]: "Card Mínimo (Teste)", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "100", [exCol.uniPrinc]: "pts", [exCol.anoTend]: 2023, [exCol.valTend]: 50 },
+    { [exCol.titulo]: "Card Mínimo (Teste)", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "100", [exCol.uniPrinc]: "pts", [exCol.anoTend]: 2024, [exCol.valTend]: 55 }
   ];
-  const mockColumns_Minimal = [ // 6 colunas
+  const mockColumns_Minimal = [ 
     { name: exCol.titulo, label: 'Título'}, { name: exCol.lblPrinc, label: 'Label Princ.'}, { name: exCol.valPrinc, label: 'Valor Princ.'}, 
     { name: exCol.uniPrinc, label: 'Unid. Princ.'}, { name: exCol.anoTend, label: 'Ano Tend.'}, { name: exCol.valTend, label: 'Valor Tend.'}
   ];
 
   const sampleRows_WithOneSecondary = [
-    { [exCol.titulo]: "Card c/ 1 Sec.", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "200", [exCol.uniPrinc]: "€", [exCol.anoTend]: 2023, [exCol.valTend]: 60, [exCol.lblSec1]: "Info Extra", [exCol.valSec1]: "Detalhe A", [exCol.uniSec1]: "!" },
-    { [exCol.titulo]: "Card c/ 1 Sec.", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "200", [exCol.uniPrinc]: "€", [exCol.anoTend]: 2024, [exCol.valTend]: 65, [exCol.lblSec1]: "Info Extra", [exCol.valSec1]: "Detalhe A", [exCol.uniSec1]: "!" }
+    { [exCol.titulo]: "Card c/ 1 Sec. (Teste)", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "200", [exCol.uniPrinc]: "€", [exCol.anoTend]: 2023, [exCol.valTend]: 60, [exCol.lblSec1]: "Info Extra", [exCol.valSec1]: "Detalhe A", [exCol.uniSec1]: "!" },
+    { [exCol.titulo]: "Card c/ 1 Sec. (Teste)", [exCol.lblPrinc]: "KPI Principal", [exCol.valPrinc]: "200", [exCol.uniPrinc]: "€", [exCol.anoTend]: 2024, [exCol.valTend]: 65, [exCol.lblSec1]: "Info Extra", [exCol.valSec1]: "Detalhe A", [exCol.uniSec1]: "!" }
   ];
-  const mockColumns_WithOneSecondary = [ // 9 colunas
+  const mockColumns_WithOneSecondary = [ 
     ...mockColumns_Minimal, 
     { name: exCol.lblSec1, label: 'Label Sec1'}, { name: exCol.valSec1, label: 'Valor Sec1'}, { name: exCol.uniSec1, label: 'Unid. Sec1'}
   ];
   
   const sampleRows_Full = [
-    { [exCol.titulo]: "Card Completo", [exCol.lblPrinc]: "KPI Completo", [exCol.valPrinc]: "300", [exCol.uniPrinc]: "$", [exCol.anoTend]: 2023, [exCol.valTend]: 70, [exCol.lblSec1]: "Secundária 1", [exCol.valSec1]: "S1 Val", [exCol.uniSec1]: "s1u", [exCol.lblSec2]: "Secundária 2", [exCol.valSec2]: "S2 Val", [exCol.uniSec2]: "s2u" },
-    { [exCol.titulo]: "Card Completo", [exCol.lblPrinc]: "KPI Completo", [exCol.valPrinc]: "300", [exCol.uniPrinc]: "$", [exCol.anoTend]: 2024, [exCol.valTend]: 77, [exCol.lblSec1]: "Secundária 1", [exCol.valSec1]: "S1 Val", [exCol.uniSec1]: "s1u", [exCol.lblSec2]: "Secundária 2", [exCol.valSec2]: "S2 Val", [exCol.uniSec2]: "s2u" }
+    { [exCol.titulo]: "Card Completo (Teste)", [exCol.lblPrinc]: "KPI Completo", [exCol.valPrinc]: "300", [exCol.uniPrinc]: "$", [exCol.anoTend]: 2023, [exCol.valTend]: 70, [exCol.lblSec1]: "Secundária 1", [exCol.valSec1]: "S1 Val", [exCol.uniSec1]: "s1u", [exCol.lblSec2]: "Secundária 2", [exCol.valSec2]: "S2 Val", [exCol.uniSec2]: "s2u" },
+    { [exCol.titulo]: "Card Completo (Teste)", [exCol.lblPrinc]: "KPI Completo", [exCol.valPrinc]: "300", [exCol.uniPrinc]: "$", [exCol.anoTend]: 2024, [exCol.valTend]: 77, [exCol.lblSec1]: "Secundária 1", [exCol.valSec1]: "S1 Val", [exCol.uniSec1]: "s1u", [exCol.lblSec2]: "Secundária 2", [exCol.valSec2]: "S2 Val", [exCol.uniSec2]: "s2u" }
   ];
-  const mockColumns_Full = [ // 12 colunas
+  const mockColumns_Full = [ 
     ...mockColumns_WithOneSecondary, 
     { name: exCol.lblSec2, label: 'Label Sec2'}, { name: exCol.valSec2, label: 'Valor Sec2'}, { name: exCol.uniSec2, label: 'Unid. Sec2'}
   ];
+
 </script>
 
 </body>
